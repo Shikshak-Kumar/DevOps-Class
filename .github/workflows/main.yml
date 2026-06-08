@@ -117,3 +117,13 @@ jobs:
           cd docker/app1-hello/springboot/hello-spring
           docker build -t hello-spring-app .
           
+
+
+# Main Purpose of Docker Build in CI
+# Validate deployment readiness
+
+# It ensures:
+
+# app can be containerized
+# Dockerfile is valid
+# deployment artifact can be created
