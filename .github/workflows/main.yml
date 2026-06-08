@@ -26,7 +26,7 @@ jobs:
         run: |  # Execute multiple shell commands line by line. The | allows multiline bash commands.
           cd docker/app1-hello/node
           npm install
-           cd ../../app2-tax-calculator/node/service-a.
+           cd docker/app2-tax-calculator/node/service-a
           npm install
           cd ../service-b
           npm install
