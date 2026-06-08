@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  node:
+    name: Node.js build and frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and verify Node services
+        run: |
+          cd docker/app1-hello/node
+          npm install
+          cd ../../../app2-tax-calculator/node/service-a
+          npm install
+          cd ../service-b
+          npm install
+
+      - name: Install and build frontend
+        run: |
+          cd docker/app2-tax-calculator/tax-calculator-frontend
+          npm install
+          npm run build
+
+      - name: Lint frontend
+        run: |
+          cd docker/app2-tax-calculator/tax-calculator-frontend
+          npm run lint
+
+  python:
+    name: Python apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies and compile
+        run: |
+          cd docker/app1-hello/python
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m py_compile main.py
+
+          cd ../../app2-tax-calculator/python/service-a
+          pip install -r requirements.txt
+          python -m py_compile main.py
+
+          cd ../service-b
+          pip install -r requirements.txt
+          python -m py_compile main.py
+
+  java:
+    name: Java Spring Boot builds
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project-path:
+          - docker/app1-hello/springboot/hello-spring
+          - docker/app2-tax-calculator/spring/service-a
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build and test Spring Boot app
+        run: |
+          cd ${{ matrix.project-path }}
+          ./mvnw -B test
+
+  docker-build:
+    name: Build Spring Boot Docker image
+    runs-on: ubuntu-latest
+    needs: java
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image for Spring Boot app
+        run: |
+          cd docker/app1-hello/springboot/hello-spring
+          docker build -t hello-spring-app .

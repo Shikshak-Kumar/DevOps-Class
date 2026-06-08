@@ -1,0 +1,70 @@
+# Search simple worflow syntax here: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+name: CI
+
+on: 
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+
+jobs:
+  node:
+    name: Node.js build and frontend 
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4 # Downloads your repo code into the runner.
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4 # Installs Node.js
+        with:
+          node-version: '20'
+      
+      - name: Install and verify Node services
+        run: |  # Execute multiple shell commands line by line. The | allows multiline bash commands.
+          cd docker/app1-hello/node
+          npm install
+           cd ../../../app2-tax-calculator/node/service-a.
+          npm install
+          cd ../service-b
+          npm install
+      # note: cd ../../../app2-tax-calculator/node/service-a. This is a relative path. .. = go one folder back, so we go back from node to app2-tax-calculator, then into node/service-a
+
+      - name: Install and build frontend
+        run: |
+          cd docker/app2-tax-calculator/tax-calculator-frontend
+          npm install
+          npm run build
+      
+      - name: Lint frontend
+        run: |
+          cd docker/app2-tax-calculator/tax-calculator-frontend
+          npm run lint
+  
+  python:
+    name: Python apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies and compile
+        run: |
+          cd docker/app1-hello/python
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m py_compile main.py
+
+          cd ../../app2-tax-calculator/python/service-a
+          pip install -r requirements.txt
+          python -m py_compile main.py
+
+          cd ../service-b
+          pip install -r requirements.txt
+          python -m py_compile main.py
