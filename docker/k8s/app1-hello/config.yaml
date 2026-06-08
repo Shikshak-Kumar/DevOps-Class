@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app1-config
+data:
+  ENV_VALUE: "Hello from config.yaml"
+  DB_PASSWORD: "1234567890"
