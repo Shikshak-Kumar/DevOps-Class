@@ -26,11 +26,11 @@ jobs:
         run: |  # Execute multiple shell commands line by line. The | allows multiline bash commands.
           cd docker/app1-hello/node
           npm install
-           cd ../../../app2-tax-calculator/node/service-a.
+           cd ../../app2-tax-calculator/node/service-a.
           npm install
           cd ../service-b
           npm install
-      # note: cd ../../../app2-tax-calculator/node/service-a. This is a relative path. .. = go one folder back, so we go back from node to app2-tax-calculator, then into node/service-a
+      # note: cd ../../app2-tax-calculator/node/service-a. This is a relative path. .. = go one folder back, so we go back from node to app2-tax-calculator, then into node/service-a
 
       - name: Install and build frontend
         run: |
@@ -68,3 +68,40 @@ jobs:
           cd ../service-b
           pip install -r requirements.txt
           python -m py_compile main.py
+
+  java:
+    name: Java Spring Boot builds
+    runs-on: ubuntu-latest
+    strategy: # Run the SAME job multiple times using different values.
+      matrix:
+        project-path:
+          - docker/app1-hello/springboot/hello-spring
+          - docker/app2-tax-calculator/spring/service-a
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin # Which Java/JDK provider should GitHub install? Temurin is a popular open-source JDK distribution.
+          java-version: '21'
+
+      - name: Build and test Spring Boot app
+        run: |
+          cd ${{ matrix.project-path }}
+          ./mvnw -B test
+
+      # Moves into the project directory cd ${{ matrix.project-path }},  Because of matrix strategy, this becomes either of those 2 paths in the matrix. Then it runs the maven wrapper command to build and test the Spring Boot app. The -B flag is for batch mode, which is useful in CI environments to avoid interactive prompts.
+
+  docker-build:
+    name: Build Spring Boot Docker image
+    runs-on: ubuntu-latest
+    needs: java
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image for Spring Boot app
+        run: |
+          cd docker/app1-hello/springboot/hello-spring
+          docker build -t hello-spring-app .
+          
