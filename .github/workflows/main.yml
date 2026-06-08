@@ -100,6 +100,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Java for packaging
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Package Spring Boot app (create target/*.jar)
         run: |
           cd docker/app1-hello/springboot/hello-spring
