@@ -23,10 +23,10 @@ jobs:
           node-version: '20'
       
       - name: Install and verify Node services
-        run: |  # Execute multiple shell commands line by line. The | allows multiline bash commands.
+        run: |
           cd docker/app1-hello/node
           npm install
-           cd docker/app2-tax-calculator/node/service-a
+          cd ../../app2-tax-calculator/node/service-a
           npm install
           cd ../service-b
           npm install
