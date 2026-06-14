@@ -68,7 +68,7 @@ jobs:
 
   docker-aws-eks:
     runs-on: ubuntu-latest
-    needs: build-test # dependent on previous job to complete successfully before starting this job
+    needs: docker-build-push # dependent on previous job to complete successfully before starting this job
 
     steps:
       - name: Checkout code
