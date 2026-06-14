@@ -1,0 +1,65 @@
+name: Hello Spring Boot app to Docker
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      
+      - name: Build and Test (Maven)
+        working-directory: docker/app1-hello/springboot/hello-spring
+        run: mvn -B clean verify
+        
+      
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: docker/app1-hello/springboot/hello-spring/target/surefire-reports/*.xml
+  
+
+  docker-build-push:
+    runs-on: ubuntu-latest
+    needs: build-test # dependent on previous job to complete successfully before starting this job
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      
+      - name: Build JAR for Docker 
+        working-directory: docker/app1-hello/springboot/hello-spring
+        run: mvn -B clean package -DskipTests
+      
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+      
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/app1-hello/springboot/hello-spring
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/hello-spring:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/hello-spring:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/hello-spring:${{ github.ref_name }}
